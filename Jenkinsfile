@@ -35,13 +35,15 @@ pipeline{
             }
         }
 
-        stage("Push Image"){
-            steps{
-                script{
-                        builder.push()
-                    }
-            }
-        }
+        // stage("Push Image"){
+        //     steps{
+        //         script{
+        //                 builder.push()
+        //             }
+        //     }
+        // }
+
+
 
         stage("Deploy"){
             steps{
@@ -49,11 +51,11 @@ pipeline{
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: 'development',
+                                configName: 'jenkinserver',
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: "docker pull ${images_name}; docker kill frontendVue; docker run -d --rm --name frontendVue -p 8080:8080 ${images_name}",
+                                        execCommand: "docker-compose up -d",
                                         execTimeout: 1200000
                                     )
                                 ]
