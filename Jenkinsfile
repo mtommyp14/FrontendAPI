@@ -55,8 +55,9 @@ pipeline{
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: "docker-compose up -d",
-                                        execTimeout: 1200000
+                                        execCommand: " docker-compose up -d",
+                                        execTimeout: 1200000,
+                                        remoteDirectory: 'app',
                                     )
                                 ]
                             )
@@ -64,6 +65,8 @@ pipeline{
                     )
                 }
             }
+
+            
         }
     }
 }
