@@ -6,6 +6,12 @@ pipeline{
     
     agent any
 
+   parameters {
+        string(name: 'DOCKERHUB', defaultValue: 'nameDockerID', description: 'DockerID')
+        booleanParam(name: 'RUNTEST', defaultValue: 'false', description: 'Check to Runnig Test image')
+        choice(name: 'DEPLOY', choices: ["master", "testing"], description: 'Choice build to')
+    }
+
     stages{
 
         stage("Install dependencies"){
@@ -16,36 +22,76 @@ pipeline{
                 }
             }
         }
-
-        stage("Build Docker"){
-            steps{
-                script{
-                    builder = docker.build("${dockerhub}:${BRANCH_NAME}")
+        
+        stage("Main") {
+           when {
+                expression {
+                    params.DEPLOY == "main"
                 }
             }
+            steps {
+                    script {
+                        builder = docker.build("${image_name}")
+                    }
+            }
         }
+
+
+        stage("Production") {
+           when {
+                expression {
+                    params.DEPLOY == "production"
+                }
+            }
+            steps {
+                    script {
+                        builder = docker.build("${dockerhub}:${env.branch}")
+                    }
+            }
+        }
+
+        stage("Testing") {
+            when {
+                expression {
+                    params.RUNTEST
+                }
+            }
+            steps {
+                 script {
+                     builder.inside {
+                         sh 'Success production'
+                     }
+                 }
+            }
+        }
+
 
         stage("Testing Image"){
             steps{
                 script{
                     builder.inside{
-                        sh 'echo passed'
+                        sh 'passed'
                     }
                 }
             }
         }
 
-        // stage("Push Image"){
-        //     steps{
-        //         script{
-        //                 builder.push()
-        //             }
-        //     }
-        // }
+        stage("Push Image"){
+            steps{
+                script{
+                        builder.push()
+                    }
+            }
+        }
 
+        
 
-
-        stage("Deploy"){
+        stage("Deploy Main"){
+            when {
+                expression {
+                    params.DEPLOY == "main"
+                }
+            }
             steps{
                 script{
                     sshPublisher(
@@ -55,9 +101,10 @@ pipeline{
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
-                                        execCommand: " docker-compose up -d",
-                                        execTimeout: 1200000,
+                                        sourceFiles: 'docker-compose.yml',
                                         remoteDirectory: 'app',
+                                        execCommand: "docker pull ${images_name}; docker kill frontendVue; docker run -d --rm --name frontendVue -p 8080:8080 ${images_name}",
+                                        execTimeout: 1200000
                                     )
                                 ]
                             )
@@ -65,8 +112,33 @@ pipeline{
                     )
                 }
             }
-
-            
+        }
+        stage("Deploy Production"){
+            when {
+                expression {
+                    params.DEPLOY == "production"
+                }
+            }
+            steps{
+                script{
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                configName: 'jenkinsever',
+                                verbose: false,
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: 'docker-compose.yml',
+                                        remoteDirectory: 'app',
+                                        execCommand: "docker pull ${images_name}; docker kill frontendVue; docker run -d --rm --name frontendVue -p 8080:8080 ${images_name}",
+                                        execTimeout: 1200000
+                                    )
+                                ]
+                            )
+                        ]
+                    )
+                }
+            }
         }
     }
 }
