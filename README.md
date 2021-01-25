@@ -46,3 +46,4 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 4. category
 # Front
 # FoodFront
+# FoodFront
