@@ -9,7 +9,7 @@ pipeline{
    parameters {
         string(name: 'DOCKERHUB', defaultValue: 'nameDockerID', description: 'DockerID')
         booleanParam(name: 'RUNTEST', defaultValue: 'false', description: 'Check to Runnig Test image')
-        choice(name: 'DEPLOY', choices: ["master", "testing"], description: 'Choice build to')
+        choice(name: 'DEPLOY', choices: ["main", "production"], description: 'Choice build to')
     }
 
     stages{
