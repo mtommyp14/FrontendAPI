@@ -50,7 +50,7 @@ pipeline{
             }
         }
 
-        stage("Testing") {
+        stage("Testing Image") {
             when {
                 expression {
                     params.RUNTEST
@@ -62,17 +62,6 @@ pipeline{
                          sh 'Success production'
                      }
                  }
-            }
-        }
-
-
-        stage("Testing Image"){
-            steps{
-                script{
-                    builder.inside{
-                        sh 'passed'
-                    }
-                }
             }
         }
 
