@@ -6,11 +6,12 @@ pipeline{
     
     agent any
 
-   parameters {
-        string(name: 'DOCKERHUB', defaultValue: 'nameDockerID', description: 'DockerID')
+    parameters {
+        string(name: 'DOCKERHUB', defaultValue: 'Frontend ID', description: 'DockerID-Backend')
         booleanParam(name: 'RUNTEST', defaultValue: 'false', description: 'Check to Runnig Test image')
         choice(name: 'DEPLOY', choices: ["main", "production"], description: 'Choice build to')
     }
+
 
     stages{
 
@@ -22,60 +23,49 @@ pipeline{
                 }
             }
         }
-        
-        stage("Main") {
-           when {
+
+        stage("Build Docker - Main"){
+            when {
                 expression {
                     params.DEPLOY == "main"
                 }
             }
-            steps {
-                    script {
-                        builder = docker.build("${image_name}")
-                    }
+            steps{
+                script{
+                    builder = docker.build("${dockerhub}:${env.BRANCH_NAME}")
+                }
             }
         }
 
-
-        stage("Production") {
-           when {
+        stage("Build Docker - Production"){
+            when {
                 expression {
                     params.DEPLOY == "production"
                 }
             }
-            steps {
-                    script {
-                        builder = docker.build("${dockerhub}:${env.branch}")
-                    }
+            steps{
+                script{
+                    builder = docker.build("${dockerhub}:${env.BRANCH_NAME}")
+                }
             }
         }
 
-        stage("Testing Image") {
+        stage("Testing Image"){
             when {
                 expression {
                     params.RUNTEST
                 }
             }
-            steps {
-                 script {
-                     builder.inside {
-                         sh 'Success production'
-                     }
-                 }
-            }
-        }
-
-        stage("Push Image"){
             steps{
                 script{
-                        builder.push()
+                    builder.inside{
+                        sh 'echo passed'
                     }
+                }
             }
         }
 
-        
-
-        stage("Deploy Main"){
+        stage("Push Image Main"){
             when {
                 expression {
                     params.DEPLOY == "main"
@@ -102,7 +92,7 @@ pipeline{
                 }
             }
         }
-        stage("Deploy Production"){
+        stage("Push Image Production"){
             when {
                 expression {
                     params.DEPLOY == "production"
@@ -131,3 +121,4 @@ pipeline{
         }
     }
 }
+
