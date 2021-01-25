@@ -51,7 +51,7 @@ pipeline{
                     sshPublisher(
                         publishers: [
                             sshPublisherDesc(
-                                configName: 'jenkinserver',
+                                configName: 'jenkinsever',
                                 verbose: false,
                                 transfers: [
                                     sshTransfer(
